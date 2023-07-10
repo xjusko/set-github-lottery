@@ -17,7 +17,6 @@ import org.jboss.set.aphrodite.repository.services.common.RepositoryType;
 
 import io.quarkus.scheduler.Scheduled;
 import org.kohsuke.github.GHApp;
-import org.kohsuke.github.GHAppInstallation;
 import org.kohsuke.github.GHIssue;
 import org.kohsuke.github.GHIssueBuilder;
 import org.kohsuke.github.GHRepository;
@@ -25,9 +24,8 @@ import org.kohsuke.github.GitHub;
 import org.kohsuke.github.PagedIterable;
 import org.lottery.config.Config;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
