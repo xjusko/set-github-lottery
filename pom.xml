@@ -36,7 +36,7 @@
     <quarkus.platform.version>3.1.1.Final</quarkus.platform.version>
     <skipITs>true</skipITs>
     <surefire-plugin.version>3.1.2</surefire-plugin.version>
-    <version.org.jboss.set.aphrodite>0.7.18.Final-SNAPSHOT</version.org.jboss.set.aphrodite>
+    <version.org.jboss.set.aphrodite>0.7.20.Final-SNAPSHOT</version.org.jboss.set.aphrodite>
     <quarkus-github-app.version>2.0.2</quarkus-github-app.version>
 
   </properties>
@@ -56,6 +56,16 @@
       <groupId>io.quarkiverse.githubapp</groupId>
       <artifactId>quarkus-github-app</artifactId>
       <version>${quarkus-github-app.version}</version>
+    </dependency>
+    <dependency>
+      <!-- To deserialize Optional -->
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jdk8</artifactId>
+    </dependency>
+    <dependency>
+      <!-- To deserialize ZoneId -->
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkiverse.githubapi</groupId>

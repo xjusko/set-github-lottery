@@ -4,8 +4,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @RegisterForReflection(ignoreNested = false)
@@ -18,10 +23,19 @@ public record Config(
             @JsonProperty(required = true) String user,
             @JsonProperty(required = true) int issueCount,
             @JsonProperty(required = true) Set<DayOfWeek> days,
-            String timezone
+            Optional<ZoneId> timezone
     ) {
-        public ZoneId timezoneId() {
-            return timezone == null ? ZoneId.of("UTC") : ZoneId.of(timezone);
+        public boolean isReminderDay() {
+            LocalDate currentDate = LocalDate.now(timezone.orElse(ZoneOffset.UTC));
+            DayOfWeek currentDay = currentDate.getDayOfWeek();
+            return days.contains(currentDay);
+        }
+
+        public boolean isReminderTime() {
+            ZonedDateTime currentTime = ZonedDateTime.now(timezone.orElse(ZoneOffset.UTC));
+            LocalTime reminderTime = LocalTime.of(10, 0);
+            return currentTime.toLocalTime().equals(reminderTime)
+                     || (currentTime.toLocalTime().isAfter(reminderTime));
         }
     }
 }
