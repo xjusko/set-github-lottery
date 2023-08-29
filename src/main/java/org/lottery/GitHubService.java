@@ -1,36 +1,45 @@
 package org.lottery;
 
-import io.quarkiverse.githubapp.GitHubClientProvider;
-import io.quarkiverse.githubapp.GitHubConfigFileProvider;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import io.quarkiverse.githubapp.GitHubClientProvider;
+import io.quarkiverse.githubapp.GitHubConfigFileProvider;
 import org.kohsuke.github.GHApp;
 import org.kohsuke.github.GHAppInstallation;
 import org.kohsuke.github.GHRepository;
 import org.kohsuke.github.GitHub;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 @ApplicationScoped
 public class GitHubService {
 
     @Inject
-    GitHubClientProvider gitHubClientProvider;
+    GitHubClientProvider clientProvider;
+    @Inject
+    GitHubConfigFileProvider configFileProvider;
 
-    public List<GHRepository> listRepositories() throws IOException {
-        List<GHRepository> repositoryList = new ArrayList<>();
-        GitHub client = gitHubClientProvider.getApplicationClient();
+
+    public List<GitHubRepositoryRef> listRepositories() throws IOException {
+        List<GitHubRepositoryRef> result = new ArrayList<>();
+        GitHub client = clientProvider.getApplicationClient();
         GHApp app = client.getApp();
         String appSlug = app.getSlug();
         for (GHAppInstallation installation : app.listInstallations()) {
             long installationId = installation.getId();
-            for (GHRepository repository : gitHubClientProvider.getInstallationClient(installationId).getInstallation().listRepositories()) {
-                repositoryList.add(repository);
+            var installationRef = new GitHubInstallationRef(appSlug, installationId);
+            for (GHRepository repository : clientProvider.getInstallationClient(installationId)
+                    .getInstallation().listRepositories()) {
+                result.add(new GitHubRepositoryRef(installationRef, repository.getFullName()));
             }
         }
-        return repositoryList;
+        return result;
     }
 
+    public GitHubRepository repository(GitHubRepositoryRef ref) {
+        return new GitHubRepository(clientProvider, configFileProvider, ref);
+    }
 }
+

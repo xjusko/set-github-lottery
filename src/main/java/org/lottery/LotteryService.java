@@ -2,6 +2,7 @@ package org.lottery;
 import io.quarkiverse.githubapp.ConfigFile;
 import io.quarkiverse.githubapp.GitHubClientProvider;
 import io.quarkiverse.githubapp.GitHubConfigFileProvider;
+import io.quarkus.logging.Log;
 import org.jboss.set.aphrodite.domain.Issue;
 
 
@@ -27,23 +28,21 @@ public class LotteryService {
     JiraIssueRetriever jiraIssueRetriever;
     @Inject
     GitHubService gitHubService;
-    @Inject
-    GitHubConfigFileProvider configFileProvider;
 
     @Scheduled(every = "1H", concurrentExecution = Scheduled.ConcurrentExecution.SKIP)
     public synchronized void commentOnIssue() throws Exception {
+        Log.info("Starting draw...");
 
-
-        for (GHRepository repository : gitHubService.listRepositories()) {
+        for (GitHubRepositoryRef ref : gitHubService.listRepositories()) {
             List<Issue> issueList = jiraIssueRetriever.searchIssues();
 
-            Optional<Config> configFile = configFileProvider.fetchConfigFile(repository, Config.FILE_NAME, ConfigFile.Source.DEFAULT, Config.class);
-            if (configFile.isEmpty()) {
-                return;
-            }
-            Config config = configFile.get();
-
-            try {
+            try (GitHubRepository repository = gitHubService.repository(ref)) {
+                Optional<Config> configFile = repository.fetchLotteryConfig();
+                if (configFile.isEmpty()) {
+                    Log.info("No lottery configuration found.");
+                    return;
+                }
+                Config config = configFile.get();
                 for (Config.Participant participant : config.participants()) {
                     StringBuilder commentText = new StringBuilder("Hey @" + participant.user() + ", here is your report on " + LocalDate.now() + ".\n");
 
@@ -60,24 +59,17 @@ public class LotteryService {
                     }
 
                     if (!randomIssueUrls.isEmpty() && participant.isReminderDay() && participant.isReminderTime()) {
-                        commentOnIssue(participant, repository, commentText);
+                        repository.commentOnIssue(participant, commentText);
                     }
 
                 }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
         }
 
 
     }
 
-    private static void commentOnIssue(Config.Participant participant, GHRepository repository, StringBuilder commentText) throws IOException {
-        PagedIterable<GHIssue> githubIssues = repository.queryIssues().assignee(participant.user()).list();
-        for (GHIssue issue : githubIssues) {
-            issue.comment(commentText.toString());
-        }
-    }
+
 
     // Helper method to retrieve a list of issue URLs
     private List<String> getIssueUrls(List<Issue> issueList) {
