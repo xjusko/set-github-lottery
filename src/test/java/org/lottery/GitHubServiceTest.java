@@ -4,20 +4,23 @@ import io.quarkiverse.githubapp.GitHubClientProvider;
 import io.quarkiverse.githubapp.testing.GitHubAppTest;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import org.hamcrest.Matchers;
+
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.kohsuke.github.GHApp;
 import org.kohsuke.github.GHAppInstallation;
 import org.kohsuke.github.GHAuthenticatedAppInstallation;
 import org.kohsuke.github.GHIssueQueryBuilder;
 import org.kohsuke.github.GHRepository;
+
 import org.kohsuke.github.GitHub;
 import org.kohsuke.github.PagedSearchIterable;
 import org.mockito.Answers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.hamcrest.MatcherAssert;
+import org.mockito.junit.jupiter.MockitoExtension;
+
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,15 +30,17 @@ import java.util.regex.Matcher;
 
 import static io.quarkiverse.githubapp.testing.GitHubAppMockito.mockPagedIterable;
 import static io.quarkiverse.githubapp.testing.GitHubAppTesting.given;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @QuarkusTest
 @GitHubAppTest
+@ExtendWith(MockitoExtension.class)
 public class GitHubServiceTest {
 
-    private final GitHubInstallationRef installationRef = new GitHubInstallationRef("set-github-lottery", 1234L);
+    private final GitHubInstallationRef installationRef = new GitHubInstallationRef("set-github-lottery", 31293377L);
 
     @Inject
     GitHubService gitHubService;
@@ -74,7 +79,8 @@ public class GitHubServiceTest {
                     }
                 })
                 .when(() -> {
-                    MatcherAssert.assertThat(gitHubService.listRepositories(), Matchers.containsInAnyOrder(repoRef));
+                    assertThat(gitHubService.listRepositories())
+                            .containsExactlyInAnyOrder(repoRef);
                 })
                 .then().github(mocks -> {
                     verifyNoMoreInteractions(queryIssuesBuilderMock);
